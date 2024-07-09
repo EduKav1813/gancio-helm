@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert
+    kompose.version: 1.21.0 (992df58d8)
+  # creationTimestamp: null
+  labels:
+    io.kompose.service: gancio
+  name: gancio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: gancio
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert
+        kompose.version: 1.21.0 (992df58d8)
+      # creationTimestamp: null
+      labels:
+        io.kompose.service: gancio
+    spec:
+      containers:
+      - env:
+        - name: GANCIO_DATA
+          value: /home/node/data
+        - name: GANCIO_DB_DATABASE
+          value: gancio
+        - name: GANCIO_DB_DIALECT
+          value: postgres
+        - name: GANCIO_DB_HOST
+          value: db
+        - name: GANCIO_DB_PASSWORD
+          value: gancio
+        - name: GANCIO_DB_PORT
+          value: "5432"
+        - name: GANCIO_DB_USERNAME
+          value: gancio
+        image: cisti/gancio
+        imagePullPolicy: "IfNotPresent"
+        name: gancio
+        ports:
+        - containerPort: 13120
+        resources: {}
+        volumeMounts:
+        - mountPath: /home/node/data
+          name: gancio-claim0
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+      - name: gancio-claim0
+        persistentVolumeClaim:
+          claimName: gancio-claim0
+status: {}
