@@ -1,58 +1,61 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert
-    kompose.version: 1.21.0 (992df58d8)
-  # creationTimestamp: null
-  labels:
-    io.kompose.service: gancio
   name: gancio
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: gancio
-  strategy:
-    type: Recreate
+      app: gancio
+  replicas: 1
   template:
     metadata:
-      annotations:
-        kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert
-        kompose.version: 1.21.0 (992df58d8)
-      # creationTimestamp: null
       labels:
-        io.kompose.service: gancio
+        app: gancio
     spec:
       containers:
-      - env:
-        - name: GANCIO_DATA
-          value: /home/node/data
-        - name: GANCIO_DB_DATABASE
-          value: gancio
-        - name: GANCIO_DB_DIALECT
-          value: postgres
-        - name: GANCIO_DB_HOST
-          value: db
-        - name: GANCIO_DB_PASSWORD
-          value: gancio
-        - name: GANCIO_DB_PORT
-          value: "5432"
-        - name: GANCIO_DB_USERNAME
-          value: gancio
-        image: cisti/gancio
-        imagePullPolicy: "IfNotPresent"
-        name: gancio
-        ports:
-        - containerPort: 13120
-        resources: {}
-        volumeMounts:
-        - mountPath: /home/node/data
-          name: gancio-claim0
-      restartPolicy: Always
-      serviceAccountName: ""
+        - name: gancio
+          image: cisti/gancio
+          env:
+            - name: GANCIO_DATA
+              value: "/home/node/data"
+            - name: GANCIO_DB_DIALECT
+              value: "postgres"
+            - name: GANCIO_DB_HOST
+              value: "postgres"
+            - name: GANCIO_DB_PORT
+              value: "5432"
+            - name: GANCIO_DB_DATABASE
+              value: "gancio"
+            - name: GANCIO_DB_USERNAME
+              value: "gancio"
+            - name: GANCIO_DB_PASSWORD
+              value: "gancio"
+            - name: GANCIO_PORT
+              value: "13120"
+          ports:
+            - containerPort: 13120
+          volumeMounts:
+            - mountPath: /home/node/data
+              name: gancio-data
+          resources:
+            limits:
+              memory: "2048Mi"
+              cpu: "1000m"
       volumes:
-      - name: gancio-claim0
-        persistentVolumeClaim:
-          claimName: gancio-claim0
-status: {}
+        - name: gancio-data
+          persistentVolumeClaim:
+            claimName: gancio-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gancio
+spec:
+  selector:
+    app: gancio
+  ports:
+    - protocol: TCP
+      port: 13120
+      targetPort: 13120
+      nodePort: 31320
+  type: NodePort

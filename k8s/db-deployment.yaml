@@ -1,59 +1,51 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert
-    kompose.version: 1.21.0 (992df58d8)
-  # creationTimestamp: null
-  labels:
-    io.kompose.service: db
-  name: db
+  name: postgres
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: db
-  strategy:
-    type: Recreate
+      app: postgres
+  replicas: 1
   template:
     metadata:
-      annotations:
-        kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert
-        kompose.version: 1.21.0 (992df58d8)
-      # creationTimestamp: null
       labels:
-        io.kompose.service: db
+        app: postgres
     spec:
       containers:
-      - env:
-        - name: PGDATA
-          value: /var/lib/postgresql/data
-        - name: POSTGRES_DB
-          value: gancio
-        - name: POSTGRES_PASSWORD
-          value: gancio
-        - name: POSTGRES_USER
-          value: gancio
-        image: postgres:15
-        imagePullPolicy: "IfNotPresent"
-        name: postgres
-        ports:
-        - containerPort: 5432
-        resources: {}
-        volumeMounts:
-        - mountPath: /var/lib/postgresql/data
-          name: db-claim0
-        - mountPath: /etc/localtime
-          name: db-claim1
-          readOnly: true
-      restartPolicy: Always
-      serviceAccountName: ""
+        - name: postgres
+          image: postgres:15
+          env:
+            - name: POSTGRES_USER
+              value: "gancio"
+            - name: POSTGRES_DB
+              value: "gancio"
+            - name: POSTGRES_PASSWORD
+              value: "gancio"
+            - name: PGDATA
+              value: "/var/lib/postgresql/data"
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-storage
+          resources:
+            limits:
+              memory: "2048Mi"
+              cpu: "1000m"
       volumes:
-      - name: db-claim0
-        persistentVolumeClaim:
-          claimName: db-claim0
-      - name: db-claim1
-        persistentVolumeClaim:
-          claimName: db-claim1
-          readOnly: true
-status: {}
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
