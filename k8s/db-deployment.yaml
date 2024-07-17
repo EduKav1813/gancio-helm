@@ -37,6 +37,11 @@ spec:
         - name: postgres-storage
           persistentVolumeClaim:
             claimName: postgres-pvc
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+            type: File
+
 ---
 apiVersion: v1
 kind: Service
