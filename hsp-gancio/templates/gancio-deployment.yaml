@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  replicas: {{ .Values.gancio.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Release.Name }}
+          image: {{ .Values.gancio.image.repository }}:{{ .Values.gancio.image.tag }}
+          env:
+            - name: GANCIO_DATA
+              value: "{{ .Values.gancio.env.GANCIO_DATA }}"
+            - name: GANCIO_DB_DIALECT
+              value: "{{ .Values.gancio.env.GANCIO_DB_DIALECT }}"
+            - name: GANCIO_DB_HOST
+              value: "{{ .Values.gancio.env.GANCIO_DB_HOST }}"
+            - name: GANCIO_DB_PORT
+              value: "{{ .Values.gancio.env.GANCIO_DB_PORT }}"
+            - name: GANCIO_DB_DATABASE
+              value: "{{ .Values.gancio.env.GANCIO_DB_DATABASE }}"
+            - name: GANCIO_DB_USERNAME
+              value: "{{ .Values.gancio.env.GANCIO_DB_USERNAME }}"
+            - name: GANCIO_DB_PASSWORD
+              value: "{{ .Values.gancio.env.GANCIO_DB_PASSWORD }}"
+            - name: GANCIO_PORT
+              value: "{{ .Values.gancio.env.GANCIO_PORT }}"
+          ports:
+            - containerPort: {{ .Values.gancio.service.port }}
+          volumeMounts:
+            - mountPath: {{ .Values.gancio.volumeMounts.mountPath }}
+              name: {{ .Values.gancio.volumeMounts.name }}
+          resources:
+            limits:
+              memory: "{{ .Values.gancio.resources.limits.memory }}"
+              cpu: "{{ .Values.gancio.resources.limits.cpu }}"
+      volumes:
+        - name: {{ .Values.gancio.volumes.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.gancio.volumes.persistentVolumeClaim.claimName }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.gancio.service.port }}
+      targetPort: {{ .Values.gancio.service.port }}
+      nodePort: {{ .Values.gancio.service.nodePort }}
+  type: {{ .Values.gancio.service.type }}

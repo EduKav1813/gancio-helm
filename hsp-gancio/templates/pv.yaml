@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.postgres.pv.name }}
+spec:
+  storageClassName: {{ .Values.postgres.pv.storageClassName }}
+  capacity:
+    storage: {{ .Values.postgres.pv.capacity }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: {{ .Values.postgres.pv.hostPath }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.gancio.pv.name }}
+spec:
+  storageClassName: {{ .Values.gancio.pv.storageClassName }}
+  capacity:
+    storage: {{ .Values.gancio.pv.capacity }}
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: {{ .Values.gancio.pv.hostPath }}

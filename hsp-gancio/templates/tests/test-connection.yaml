@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "hsp-gancio.fullname" . }}-test-connection"
+  labels:
+    {{- include "hsp-gancio.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "hsp-gancio.fullname" . }}:{{ .Values.gancio.service.port }}']
+  restartPolicy: Never

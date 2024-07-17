@@ -1,0 +1,71 @@
+gancio:
+  replicaCount: 1
+  image:
+    repository: cisti/gancio
+    tag: latest
+  env:
+    GANCIO_DATA: "/home/node/data"
+    GANCIO_DB_DIALECT: "postgres"
+    GANCIO_DB_HOST: "{{ .Release.Name }}-postgres"
+    GANCIO_DB_PORT: "5432"
+    GANCIO_DB_DATABASE: "gancio"
+    GANCIO_DB_USERNAME: "gancio"
+    GANCIO_DB_PASSWORD: "gancio"
+    GANCIO_PORT: "13120"
+  service:
+    type: NodePort
+    port: 13120
+    nodePort: 31320
+  volumeMounts:
+    mountPath: /home/node/data
+    name: gancio-data
+  volumes:
+    name: gancio-data
+    persistentVolumeClaim:
+      claimName: gancio-pvc
+  resources:
+    limits:
+      memory: "2048Mi"
+      cpu: "1000m"
+  pv:
+    name: gancio-data-pv
+    storageClassName: gancio-storage
+    capacity: 512Mi
+    hostPath: /home/eduard/hsp/gancio/data-kubernetes/gancio-data/
+  pvc:
+    name: gancio-pvc
+    storageClassName: gancio-storage
+    storage: 512Mi
+
+postgres:
+  replicaCount: 1
+  image:
+    repository: postgres
+    tag: "15"
+  env:
+    POSTGRES_USER: "gancio"
+    POSTGRES_DB: "gancio"
+    POSTGRES_PASSWORD: "gancio"
+    PGDATA: "/var/lib/postgresql/data"
+  service:
+    port: 5432
+  volumeMounts:
+    mountPath: /var/lib/postgresql/data
+    name: postgres-storage
+  volumes:
+    name: postgres-storage
+    persistentVolumeClaim:
+      claimName: postgres-pvc
+  resources:
+    limits:
+      memory: "2048Mi"
+      cpu: "1000m"
+  pv:
+    name: postgres-pv
+    storageClassName: postgres-storage
+    capacity: 1Gi
+    hostPath: /home/eduard/hsp/gancio/data-kubernetes/postgres/
+  pvc:
+    name: postgres-pvc
+    storageClassName: postgres-storage
+    storage: 1Gi
